@@ -1,5 +1,4 @@
 # Azure-AKS
-
 ### Features
 ### Infrastructure Setup
 #### Creating a Resource Group
@@ -10,6 +9,7 @@ To create a resource group, click Resource groups on the left side bar and click
 [![resource-group](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/resource-group.jpg "resource-group")]()
 
 Enter a name for the resource group and change the resource group location to Southeast Asia. After that, click Review + Create. In the Summary page, click on Create.
+
 ![resource group](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/resource-group-1.png "resource group")
 
 If you click Resource groups again from the left side bar, you should see that your resource group has been created. We will use this resource group to logically contain all our resources created during this lab session 
@@ -19,9 +19,11 @@ If you click Resource groups again from the left side bar, you should see that y
 Once your Azure Subscription and Resource Group is configured, you can enable and use your associated Azure Cloud Shell session. In this article, we will use Bash.
 
 Navigate to **Cloud Shell**
+
  ![cloudshell](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/cloudshell.png "cloudshell")
 
 Click on **Advanced settings** option and update the Cloud Shell region as **Southeast Asia**
+
  ![cloud-shell](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/cloudshell-1.png "cloud-shell")
  
 Click on **Create storage** to complete storage account setup
@@ -39,7 +41,6 @@ Click on **Create storage** to complete storage account setup
 #### Create an ACR registry using below command
 
 `$ az acr create -n $acr -g $rg -l $location --sku Basic`
-
 
 ##### Setup AKS Cluster
 ##### Parameters:
@@ -70,8 +71,8 @@ Create namespace as helloworld, we will deploy apps with this namespace it later
 
 **Roles and Permissions for ACR**
 We need to assign 2 specific service principals that need to interact with ACR. 
-- 		Grant the AKS-generated service principal pull access to our ACR, the AKS cluster will be able to pull images of our ACR
-	 
+- Grant the AKS-generated service principal pull access to our ACR, the AKS cluster will be able to pull images of our ACR
+	
 ```
  $ CLIENT_ID=$(az aks show -g $rg -n $name --query "servicePrincipalProfile.clientId" -o tsv)
  $ ACR_ID=$(az acr show -n $acr -g $rg --query "id" -o tsv)
@@ -79,7 +80,7 @@ We need to assign 2 specific service principals that need to interact with ACR.
 	 
 `$ az role assignment create --assignee $CLIENT_ID --role acrpull --scope $ACR_ID `
 
-- 		 Create a specific Service Principal for our Azure DevOps pipelines to be able to push and pull images and charts of our ACR
+- Create a specific Service Principal for our Azure DevOps pipelines to be able to push and pull images and charts of our ACR
 
 `$ registryPassword=$(az ad sp create-for-rbac -n $acr-push --scopes $ACR_ID --role acrpush --query password -o tsv)`
 
@@ -96,30 +97,41 @@ Navigate to **Azure DevOps** and Click on **My Azure DevOps Organizations**
  ![devops](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/devops-acc.png "devops")
  
 Click on **Create** new organization
+
  ![org](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/organization.png "org")
 
 Click on **Continue** to get started with Azure DevOps
+
  ![org](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/org-1.png "org")
+ 
 Enter Name for Azure DevOps organization and Click on Continue to complete the setup
+
  ![org](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/org-2.png "org")
 
 **Create New Project**
 Click on **+ New project** to create new project in DevOps Organization. 
+
  ![project](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/project-1.png "project")
+ 
 Enter Project Name and Description (optional) and Click on Create. 
+
  ![project](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/project-2.png "project")
+ 
 **Source Control**
 Import Git Repo into devops project
 
 Click **Repos** on the left side bar and then click **Files** to import git repo.
+
  ![repo](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/repository-1.png "repo")
  
 Click on **Import** to import a repository from Git
+
  ![repo](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/repository-2.png "repo")
  
 We are using the existing Github repo https://github.com/1CloudHub/AzureTechDay  in this session. 
 Copy and paste the git URL to import.
 Enter Git URL and then click on Import
+
 ![repo](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/repository-3.png "repo")
 
 Source code for application setup will be available once imported. 
@@ -132,20 +144,12 @@ Click Pipeline on the left side bar and then click Builds to create new build pi
  
 Click on + New and then select New build pipeline 
  
-
-
-
-
-
 Click on Use the classic editor to create a pipeline.
  
 Select Azure Repos Git as a Source and then click on Continue,
  
 Under Configuration as a code select YAML and click on Apply
  
-
-
-
 Now, configure build pipeline as follows
 1.	Enter name for build pipeline
 2.	Select Azure Pipelines as agent pool for YAML
@@ -217,14 +221,7 @@ Start with an empty job, click on Empty job
 3.	From the dropdown, Select the Source (build pipeline)
 4.	Click on Add
  
-
-
-
-
-
-
 Make sure continuous deployment trigger enabled,
- 
  
 Task Definition
 1.	Navigate to Tasks and select Stage 1
@@ -232,8 +229,6 @@ Task Definition
 3.	Select Agent pool as Azure Pipelines
 4.	Select Agent Specification as ubuntu-16.04
 
- 
- 
 Add a task to Agent job
  
 Search for Helm and add below tasks, add Package and deploy Helm charts twice. 
@@ -249,9 +244,6 @@ Helm tool installer – Install Helm
 Helm Version Spec – 2.14.1
 Disable Check for latest version of Helm
  
-
-
-
 Package and deploy Helm charts – helm init
 1.	Select 1st helm ls task
 2.	Select Azure Resource Manager for Connection Type
@@ -302,9 +294,8 @@ We got this value during service principal setup [echo $registryPassword].
  
 Now, click on Save and Create release to run this release pipeline, which will deploy the python’s Helm chart.
  
-
-
 Validation
+
 Once deployed successfully, we can run the below commands from Azure Cloud Shell to check pod, service and hostname details.
 
 $ kubectl get all -n helloworld
