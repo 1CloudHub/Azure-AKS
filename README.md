@@ -1,5 +1,4 @@
 # Azure-AKS
-### Features
 ### Infrastructure Setup
 #### Creating a Resource Group
 A resource group is a logical way to organize instances you spin up on Azure. 
@@ -140,75 +139,87 @@ Source code for application setup will be available once imported.
 
 **Create a Build pipeline**
 Now, we will create an Azure build pipeline for python (hello-world) app. 
-Click Pipeline on the left side bar and then click Builds to create new build pipeline.
+Click **Pipeline** on the left side bar and then click **Builds** to create new build pipeline.
  
-Click on + New and then select New build pipeline 
+ ![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-1.png "pipeline")
  
-Click on Use the classic editor to create a pipeline.
+Click on **+ New** and then select New build pipeline 
  
-Select Azure Repos Git as a Source and then click on Continue,
+ ![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-2.png "pipeline")
  
-Under Configuration as a code select YAML and click on Apply
+Click on Use the **classic editor** to create a pipeline.
+
+![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-3.png "pipeline")
+ 
+Select **Azure Repos Git** as a Source and then click on **Continue**,
+
+![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-4.png "pipeline")
+ 
+Under Configuration as a code select **YAML** and click on **Apply**
+ 
+ ![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-5.png "pipeline")
  
 Now, configure build pipeline as follows
 1.	Enter name for build pipeline
 2.	Select Azure Pipelines as agent pool for YAML
 3.	Browse YAML file path and select azure-build-pipeline.yml file under python folder
  
+ ![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-6.png "pipeline") 
  
-Navigate to Variables to set some variables for this build pipeline definition,
-Select Pipeline variables and click + Add
+ ![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-7.png "pipeline") 
  
-Variables and Values,
+Navigate to **Variables** to set some variables for this build pipeline definition,
+Select Pipeline variables and **click + Add**
+
+ ![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-8.png "pipeline") 
+ 
+**Variables and Values,**
 Variable Name: ProjectName
 This is for python project. Use python as projectName
 Variable Name: registryLogin
 Run the below command from Azure Cloud Shell to get registryLogin value
 
-$ az ad sp show --id http://$acr-push --query appId -o tsv
+`$ az ad sp show --id http://$acr-push --query appId -o tsv`
 
 Variable Name: registryName
 Run the below command from Azure Cloud Shell to get registryName
 
-$ az acr show -n $acr --query name
+`$ az acr show -n $acr --query name`
 
 Variable Name: registryPassword
 We got this value during service principal setup [echo $registryPassword].
  
+ ![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-9.png "pipeline") 
+ 
 Make sure you have enabled continuous integration
  
-Now, Save & Queue a new build which will push both docker image and the Helm chart to ACR.
+ ![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-10.png "pipeline") 
  
+Now, **Save & Queue** a new build which will push both docker image and the Helm chart to ACR.
  
+  ![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-11.png "pipeline") 
+   
+  ![pipeline](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/pipeline-12.png "pipeline") 
+   
 Now, run the below Azure CLI commands from Azure Cloud Shell to check on the images and helm charts pushed to ACR
-# List Docker images from your ACR
+**List Docker images from your ACR**
 
-$ az acr repository list -n $acr
+`$ az acr repository list -n $acr`
 
+**List Helm charts from your ACR**
 
-# List Helm charts from your ACR
-
-$ az acr helm list -n $acr
-
+`$ az acr helm list -n $acr`
 
 Now, both Docker image and Helm chart can be used for any Kubernetes cluster. 
-Navigate to Kubernetes Service and Click on the cluster created above. 
+Navigate to **Kubernetes Service** and Click on the cluster created above. 
  
 Copy HTTP application routing domain value and update values.yaml file.
-Navigate to AzureDevOpsProjects Repos and select values.yaml file to update the domain value,
+Navigate to **AzureDevOps-->Projects-->Repos** and select **values.yaml** file to update the domain value,
  
-
-
-
-
-
-
-
 Update the base domain value in values.yaml file
 Edit and commit the changes
  
-
-Create Release Pipeline
+**Create Release Pipeline**
 Now, we will create an Azure release pipeline for python (hello-world) app to be able to via its associated Helm chart. 
 Click Pipeline on the left side bar and then click Releases to create new release pipeline.
  
