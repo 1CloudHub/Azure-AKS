@@ -217,62 +217,103 @@ Copy HTTP application routing domain value and update values.yaml file.
 Navigate to **AzureDevOps-->Projects-->Repos** and select **values.yaml** file to update the domain value,
  
 Update the base domain value in values.yaml file
+
 Edit and commit the changes
  
 **Create Release Pipeline**
+
 Now, we will create an Azure release pipeline for python (hello-world) app to be able to via its associated Helm chart. 
+
 Click Pipeline on the left side bar and then click Releases to create new release pipeline.
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-1.png "release")
  
-Click on + New and then select New release pipeline 
+Click on **+ New ** and then select **New release pipeline** 
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-2.png "release")
  
 Start with an empty job, click on Empty job
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-3.png "release")
  
 1.	Update release pipeline name
 2.	Click on Add an artifact
 3.	From the dropdown, Select the Source (build pipeline)
 4.	Click on Add
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-4.png "release")
  
 Make sure continuous deployment trigger enabled,
  
-Task Definition
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-5.png "release")
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-7.png "release")
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-8.png "release")
+ 
+**Task Definition**
+
 1.	Navigate to Tasks and select Stage 1
 2.	Click on Agent job
 3.	Select Agent pool as Azure Pipelines
 4.	Select Agent Specification as ubuntu-16.04
 
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-9.png "release")
+
 Add a task to Agent job
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-10.png "release")
  
 Search for Helm and add below tasks, add Package and deploy Helm charts twice. 
-o	Helm tool installer
-o	Package and deploy Helm charts
+
+- Helm tool installer
+- Package and deploy Helm charts
+ 
+ ![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-11.png "release")
  
 Search for Bash and add below task,
-o	Bash
+
+- Bash
+ 
+ ![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-12.png "release")
  
 Reorder the Agent job task as below,
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-13.png "release")
  
-Helm tool installer – Install Helm
-Helm Version Spec – 2.14.1
-Disable Check for latest version of Helm
+**Helm tool installer – Install Helm**
+1. Helm Version Spec – 2.14.1
+2. Disable Check for latest version of Helm
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-14.png "release")
  
-Package and deploy Helm charts – helm init
-1.	Select 1st helm ls task
-2.	Select Azure Resource Manager for Connection Type
-3.	Select available Azure Subscription and Click on Authorize to configure an Azure Service connection.
+**Package and deploy Helm charts – helm init**
+
+1. Select 1st helm ls task
+2. Select Azure Resource Manager for Connection Type
+3. Select available Azure Subscription and Click on Authorize to configure an Azure Service connection.
+	*if prompted for sign-in, provide same username and password used for azure account setup.*
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-15.png "release")
+
+4. Select available Azure service connection from the dropdown
+5. Select the existing Resource group and Kubernetes cluster
+6. In the command box, type init
+7. Enable Upgrade Tiller and Wait
+8. In Arguments box, type `--service-account tiller`
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-16.png "release")
  
-If prompted for Sign-in, provide same username and password used for Azure account setup. 
-4.	Select available Azure service connection from the dropdown
-5.	Select the existing Resource group and Kubernetes cluster
-6.	In the command box, type init
-7.	Enable Upgrade Tiller and Wait
-8.	In Arguments box, type --service-account tiller
+**Bash – helm repo add**
+
+1. Select Inline for Type
+2. Enter the below script in Script box
+` helm repo add $(registryName) https://$(registryName).azurecr.io/helm/v1/repo --username $(registryLogin) --password $(registryPassword) `
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-17.png "release")
  
-Bash – helm repo add
-1.	Select Inline for Type
-2.	Enter the below script in Script box
-helm repo add $(registryName) https://$(registryName).azurecr.io/helm/v1/repo --username $(registryLogin) --password $(registryPassword)
- 
-Package and deploy Helm charts – helm upgrade
+**Package and deploy Helm charts – helm upgrade**
+
 1.	Select last helm ls task
 2.	Select Azure Resource Manager for Connection Type
 3.	Select available Azure service connection for Azure Subscription
@@ -283,39 +324,51 @@ Package and deploy Helm charts – helm upgrade
 8.	Enter $(projectName) in Release Name
 9.	Enable Install if release not present and Wait
 10.	In Arguments box, type below arguments
---version $(build.buildId) --set image.repository=$(registryName).azurecr.io/$(projectName) --set image.tag=$(build.buildId) --set ingress.enabled=true --set ingress.hostname=python.<93xxxxxxxxxxxaa994.southeastasia.aksapp.io>
-**replace DNS value with HTTP application routing domain (from Kubernetes Service). 
+`--version $(build.buildId) --set image.repository=$(registryName).azurecr.io/$(projectName) --set image.tag=$(build.buildId) --set ingress.enabled=true --set ingress.hostname=python.<93xxxxxxxxxxxaa994.southeastasia.aksapp.io>`
+*replace dns value with http application routing domain (from kubernetes service). *
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-18.png "release")
  
-Variables and Values,
+**Variables and Values,**
+
 Add the below variables and Save
-Variable Name: ProjectName
+
+**Variable Name: ProjectName**
+
 This is for python project. Use python as projectName
-Variable Name: registryLogin
+
+**Variable Name: registryLogin**
+
 Run the below command from Azure Cloud Shell to get registryLogin value
 
-az ad sp show --id http://$acr-push --query appId -o tsv
+`az ad sp show --id http://$acr-push --query appId -o tsv`
 
-Variable Name: registryName
+**Variable Name: registryName**
+
 Run the below command from Azure Cloud Shell to get registryName
 
-az acr show -n $acr --query name
+`az acr show -n $acr --query name`
 
-Variable Name: registryPassword
+**Variable Name: registryPassword**
+
 We got this value during service principal setup [echo $registryPassword].
  
-Now, click on Save and Create release to run this release pipeline, which will deploy the python’s Helm chart.
- 
-Validation
+Now, click on **Save and Create release** to run this release pipeline, which will deploy the python's Helm chart.
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-19.png "release")
+
+![release](https://github.com/1CloudHub/Azure-AKS/blob/master/Images/release-pipeline-20.png "release")
+
+**Validation**
 
 Once deployed successfully, we can run the below commands from Azure Cloud Shell to check pod, service and hostname details.
 
-$ kubectl get all -n helloworld
-$ kubectl get ing -n helloworld
+`$ kubectl get all -n helloworld`
+`$ kubectl get ing -n helloworld`
 
- 
 Navigate to below URL in web browser
-http://<HOSTS>/ 
-**Replace the HOSTS value
+`http://<HOSTS>/ `
+***replace the hosts value*
  
 We have successfully deployed the simple helloworld python app on Kubernetes cluster via a Helm Chart.
 Now you can make the changes to your code and push it to Azure Repo and Azure pipelines will automatically build and release the new version. 
@@ -331,6 +384,6 @@ Update the replicaCount as 3 in values.yaml file and commit the changes either t
  
 Once Build and Release pipelines are successfully configured, you can see the increase in number pods using below command. Now application is running on 3 nodes. 
 
-$ kubectl get pods -o wide -n helloworld
+`$ kubectl get pods -o wide -n helloworld`
 
 ###End
